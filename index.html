@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Spot the Gap — The prompt looks fine. That's the problem.</title>
+<meta name="description" content="A two-minute interactive exercise on why AI needs human judgment. By Monica C. Thomas.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Karla:ital,wght@0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #FAF7F0;
+    --card: #FFFFFF;
+    --ink: #2E342C;
+    --ink-soft: #5C6357;
+    --green: #476B4D;
+    --green-deep: #35523B;
+    --green-mist: #E7EEE4;
+    --amber: #B97F24;
+    --amber-soft: #F6ECD9;
+    --amber-line: #E4C388;
+    --line: #E3DED2;
+    --shadow: 0 2px 12px rgba(46, 52, 44, 0.07);
+    --radius: 14px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Karla', 'Segoe UI', sans-serif;
+    font-size: 1.06rem;
+    line-height: 1.65;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .frame {
+    width: 100%;
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 2.5rem 1.4rem 3.5rem;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ---------- Progress dots ---------- */
+  .progress {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: center;
+    margin-bottom: 2.2rem;
+  }
+  .progress span {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--line);
+    transition: background 0.4s, transform 0.4s;
+  }
+  .progress span.active {
+    background: var(--green);
+    transform: scale(1.25);
+  }
+  .progress span.amber { background: var(--amber); }
+
+  /* ---------- Screens ---------- */
+  .screen {
+    display: none;
+    animation: rise 0.55s ease both;
+  }
+  .screen.visible { display: block; }
+
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .screen { animation: none; }
+    * { transition: none !important; }
+  }
+
+  .eyebrow {
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--green);
+    margin-bottom: 0.9rem;
+  }
+  .eyebrow.amber-text { color: var(--amber); }
+
+  h1, h2 {
+    font-family: 'Fraunces', Georgia, serif;
+    font-weight: 600;
+    line-height: 1.18;
+    color: var(--ink);
+  }
+  h1 { font-size: clamp(2.4rem, 7vw, 3.3rem); margin-bottom: 0.7rem; }
+  h2 { font-size: clamp(1.55rem, 5vw, 2.05rem); margin-bottom: 1rem; }
+
+  .tagline {
+    font-family: 'Fraunces', Georgia, serif;
+    font-style: italic;
+    font-size: 1.25rem;
+    color: var(--ink-soft);
+    margin-bottom: 1.4rem;
+  }
+
+  p { margin-bottom: 1rem; }
+  .muted { color: var(--ink-soft); }
+
+  /* ---------- Buttons ---------- */
+  .btn {
+    display: inline-block;
+    font-family: 'Karla', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    color: #fff;
+    background: var(--green);
+    border: none;
+    border-radius: 999px;
+    padding: 0.85rem 1.8rem;
+    margin-top: 1.4rem;
+    cursor: pointer;
+    transition: background 0.25s, transform 0.15s;
+  }
+  .btn:hover { background: var(--green-deep); }
+  .btn:active { transform: scale(0.98); }
+  .btn:focus-visible {
+    outline: 3px solid var(--amber-line);
+    outline-offset: 3px;
+  }
+  .btn.ghost {
+    background: transparent;
+    color: var(--green);
+    border: 1.5px solid var(--green);
+  }
+  .btn.ghost:hover { background: var(--green-mist); }
+
+  /* ---------- Prompt card ---------- */
+  .chat-card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius) var(--radius) var(--radius) 4px;
+    box-shadow: var(--shadow);
+    padding: 1.2rem 1.4rem;
+    margin: 1.2rem 0 1.6rem;
+    font-size: 1.05rem;
+    position: relative;
+  }
+  .chat-card::before {
+    content: attr(data-label);
+    display: block;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin-bottom: 0.5rem;
+  }
+  .chat-card.fixed-card {
+    border-left: 4px solid var(--green);
+  }
+
+  /* ---------- Chips ---------- */
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    margin: 1.2rem 0 0.4rem;
+  }
+  .chip {
+    font-family: 'Karla', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--ink);
+    background: var(--card);
+    border: 1.5px solid var(--line);
+    border-radius: 999px;
+    padding: 0.55rem 1.1rem;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .chip:hover { border-color: var(--green); }
+  .chip:focus-visible {
+    outline: 3px solid var(--amber-line);
+    outline-offset: 2px;
+  }
+  .chip[aria-pressed="true"] {
+    background: var(--green-mist);
+    border-color: var(--green);
+    color: var(--green-deep);
+    font-weight: 700;
+  }
+  .chip[aria-pressed="true"]::before {
+    content: "✓ ";
+  }
+
+  .tally {
+    font-size: 0.9rem;
+    color: var(--ink-soft);
+    margin-top: 0.8rem;
+    min-height: 1.4rem;
+  }
+
+  /* ---------- Reveal groups ---------- */
+  .group {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 1.3rem 1.4rem;
+    margin: 1.2rem 0;
+  }
+  .group h3 {
+    font-family: 'Fraunces', Georgia, serif;
+    font-size: 1.15rem;
+    font-weight: 600;
+    margin-bottom: 0.6rem;
+  }
+  .group .pill-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 0.8rem;
+  }
+  .pill {
+    font-size: 0.85rem;
+    font-weight: 500;
+    background: var(--green-mist);
+    color: var(--green-deep);
+    border-radius: 999px;
+    padding: 0.3rem 0.85rem;
+  }
+  .group.silent {
+    background: var(--amber-soft);
+    border: 1px solid var(--amber-line);
+    animation: settle 1.1s ease 0.5s both;
+  }
+  .group.silent h3 { color: var(--amber); }
+  .group.silent .pill {
+    background: #fff;
+    color: var(--amber);
+    border: 1px solid var(--amber-line);
+  }
+  @keyframes settle {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .personal-note {
+    font-style: italic;
+    color: var(--ink-soft);
+    margin-top: 0.4rem;
+  }
+
+  .turn {
+    font-family: 'Fraunces', Georgia, serif;
+    font-size: 1.3rem;
+    font-weight: 600;
+    line-height: 1.45;
+    margin: 1.8rem 0 0.4rem;
+    padding-left: 1rem;
+    border-left: 3px solid var(--amber);
+  }
+
+  /* ---------- Autopsy list ---------- */
+  .moves { list-style: none; counter-reset: move; margin: 1.4rem 0; }
+  .moves li {
+    counter-increment: move;
+    position: relative;
+    padding: 0 0 1.1rem 3rem;
+  }
+  .moves li::before {
+    content: counter(move);
+    position: absolute;
+    left: 0; top: 0.1rem;
+    width: 2rem; height: 2rem;
+    border-radius: 50%;
+    background: var(--green-mist);
+    color: var(--green-deep);
+    font-weight: 700;
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .moves li strong { display: block; }
+  .moves li .verdict {
+    color: var(--ink-soft);
+    font-size: 0.98rem;
+  }
+  .moves li.missed::after {
+    content: "skipped";
+    position: absolute;
+    right: 0; top: 0.25rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--amber);
+  }
+
+  .quiet-line {
+    font-family: 'Fraunces', Georgia, serif;
+    font-style: italic;
+    font-size: 1.15rem;
+    color: var(--ink-soft);
+    margin-top: 1.6rem;
+  }
+
+  /* ---------- About ---------- */
+  .signature {
+    font-family: 'Fraunces', Georgia, serif;
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-top: 1.4rem;
+  }
+  .signature .credential {
+    font-family: 'Karla', sans-serif;
+    font-size: 0.88rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+  }
+  .links { margin-top: 1rem; }
+  .links a {
+    color: var(--green);
+    font-weight: 700;
+    text-decoration: none;
+    border-bottom: 2px solid var(--green-mist);
+    margin-right: 1.3rem;
+    transition: border-color 0.2s;
+  }
+  .links a:hover { border-color: var(--green); }
+  .links a:focus-visible {
+    outline: 3px solid var(--amber-line);
+    outline-offset: 3px;
+  }
+
+  footer {
+    text-align: center;
+    font-size: 0.85rem;
+    color: var(--ink-soft);
+    padding: 1.2rem;
+  }
+  footer button {
+    background: none;
+    border: none;
+    color: var(--green);
+    font-family: 'Karla', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+    text-decoration: underline;
+  }
+</style>
+</head>
+<body>
+
+<main class="frame">
+  <nav class="progress" aria-label="Progress">
+    <span data-dot="1"></span><span data-dot="2"></span><span data-dot="3"></span>
+    <span data-dot="4"></span><span data-dot="5"></span><span data-dot="6"></span>
+    <span data-dot="7"></span>
+  </nav>
+
+  <!-- SCREEN 1 — Hook -->
+  <section class="screen" id="s1">
+    <h1>Spot the Gap</h1>
+    <p class="tagline">The prompt looks fine. That&rsquo;s the problem.</p>
+    <p>Here&rsquo;s an ordinary request someone sent an AI. In about two minutes, you&rsquo;ll see why the friendliest-looking prompts can be the most dangerous &mdash; and why the AI needs you more than you think.</p>
+    <button class="btn" data-go="2">Show me the prompt &rarr;</button>
+  </section>
+
+  <!-- SCREEN 2 — The request + spot the gaps -->
+  <section class="screen" id="s2">
+    <p class="eyebrow">The request</p>
+    <div class="chat-card" data-label="Sent to an AI assistant">
+      &ldquo;I&rsquo;m holding a workshop at a school and need to provide lunch. Please give me a grocery list with item quantities and I&rsquo;ll order from the grocery store myself.&rdquo;
+    </div>
+    <p>Reads reasonably, right? But to actually fill this order, an AI would have to guess almost everything. <strong>Tap every piece it&rsquo;s missing.</strong></p>
+    <div class="chips" id="chipRow" role="group" aria-label="Missing information — select all that apply">
+      <button class="chip" aria-pressed="false" data-gap="people">How many people</button>
+      <button class="chip" aria-pressed="false" data-gap="kind">What kind of lunch</button>
+      <button class="chip" aria-pressed="false" data-gap="budget">Budget</button>
+      <button class="chip" aria-pressed="false" data-gap="ages">Ages of the group</button>
+      <button class="chip" aria-pressed="false" data-gap="allergies">Allergies &amp; dietary needs</button>
+      <button class="chip" aria-pressed="false" data-gap="equipment">Kitchen equipment</button>
+      <button class="chip" aria-pressed="false" data-gap="timing">Date &amp; time</button>
+      <button class="chip" aria-pressed="false" data-gap="plates">Plates &amp; utensils</button>
+    </div>
+    <p class="tally" id="tally" aria-live="polite"></p>
+    <button class="btn" data-go="3">Reveal what&rsquo;s missing &rarr;</button>
+  </section>
+
+  <!-- SCREEN 3 — The reveal -->
+  <section class="screen" id="s3">
+    <h2>You probably caught the loud ones.</h2>
+
+    <div class="group">
+      <h3>The loud gaps</h3>
+      <div class="pill-row">
+        <span class="pill">How many people</span>
+        <span class="pill">What kind of lunch</span>
+        <span class="pill">Budget</span>
+        <span class="pill">Ages of the group</span>
+        <span class="pill">Equipment</span>
+        <span class="pill">Timing</span>
+        <span class="pill">Plates &amp; utensils</span>
+      </div>
+      <p class="muted">The AI might even think to ask about these. Miss them and you get a bad lunch &mdash; wrong amounts, wrong food. Annoying, not dangerous.</p>
+    </div>
+
+    <div class="group silent">
+      <h3>The silent gap</h3>
+      <div class="pill-row">
+        <span class="pill">Allergies &amp; dietary needs</span>
+      </div>
+      <p>Nothing in the prompt hints at it, so the AI won&rsquo;t feel it missing. It will cheerfully suggest peanut butter sandwiches and trail mix &mdash; a perfectly good answer, and at a school, a potential emergency.</p>
+      <p class="personal-note" id="personalNote"></p>
+    </div>
+
+    <p class="turn">The loud gaps cost you a lunch. The silent gap can cost someone their safety. And only a human knows the difference.</p>
+
+    <button class="btn" data-go="4">Why did the AI miss it? &rarr;</button>
+  </section>
+
+  <!-- SCREEN 4 — The autopsy -->
+  <section class="screen" id="s4">
+    <h2>It wasn&rsquo;t the AI&rsquo;s fault. The prompt set it up to fail.</h2>
+    <p>Strong prompts use six basic moves. This one skipped nearly all of them:</p>
+    <ol class="moves">
+      <li class="missed">
+        <strong>Give context</strong>
+        <span class="verdict">The catastrophic miss. No headcount, no ages, no dietary info, no setting.</span>
+      </li>
+      <li class="missed">
+        <strong>Specify constraints</strong>
+        <span class="verdict">The one constraint present (&ldquo;item quantities&rdquo;) can&rsquo;t be met without the headcount that was left out.</span>
+      </li>
+      <li class="missed">
+        <strong>Show examples</strong>
+        <span class="verdict">No sense of what kind of lunch.</span>
+      </li>
+      <li class="missed">
+        <strong>Define role &amp; tone</strong>
+        <span class="verdict">Caterer? Nutritionist? Budget shopper?</span>
+      </li>
+      <li class="missed">
+        <strong>Break into steps</strong>
+        <span class="verdict">Can&rsquo;t rescue a task whose core facts are missing.</span>
+      </li>
+      <li>
+        <strong>Ask it to think first</strong>
+        <span class="verdict">Same problem &mdash; thinking harder about missing facts doesn&rsquo;t create them.</span>
+      </li>
+    </ol>
+    <p><strong>Five of six, skipped.</strong> The AI didn&rsquo;t guess wrong &mdash; it was never given enough to guess right.</p>
+    <button class="btn" data-go="5">So what&rsquo;s the real lesson? &rarr;</button>
+  </section>
+
+  <!-- SCREEN 5 — The turn -->
+  <section class="screen" id="s5">
+    <p class="eyebrow amber-text">The real lesson</p>
+    <h2>Not all missing context is equal.</h2>
+    <p>Most missing information is <strong>loud</strong> &mdash; the gap is obvious, and a careful person (or a good AI) will catch it. But the most dangerous gaps are <strong>silent</strong>: so obvious to the human that we forget to say them, and so invisible to the AI that it never asks.</p>
+    <p>Filling every blank isn&rsquo;t the human&rsquo;s job. Knowing which blank can hurt someone &mdash; <em>that&rsquo;s</em> the job. That&rsquo;s the part you can&rsquo;t hand off.</p>
+    <p class="quiet-line">Maybe the AI isn&rsquo;t the problem.</p>
+    <button class="btn" data-go="6">Show me the fix &rarr;</button>
+  </section>
+
+  <!-- SCREEN 6 — The fix -->
+  <section class="screen" id="s6">
+    <h2>Same request. Rewritten.</h2>
+    <div class="chat-card fixed-card" data-label="Sent to an AI assistant — take two">
+      &ldquo;I&rsquo;m hosting lunch for 30 middle-school teachers at an all-day workshop. There&rsquo;s a fridge and microwave but no full kitchen. Please give me a grocery list with quantities for build-your-own sandwiches, including a vegetarian option, and keep everything nut-free. Budget is around $200.&rdquo;
+    </div>
+    <p>Now it&rsquo;s answerable &mdash; and safe. Same person, same lunch. The only thing that changed was the human doing the thinking up front.</p>
+    <button class="btn ghost" data-go="2" data-reset="true">Start over &#8635;</button>
+    <button class="btn" data-go="7">Who made this? &rarr;</button>
+  </section>
+
+  <!-- SCREEN 7 — About -->
+  <section class="screen" id="s7">
+    <p class="eyebrow">About</p>
+    <h2>Built by a former park ranger.</h2>
+    <p>Anyone using AI has probably gotten a result that seemed generic, flat, or completely wrong. But was the AI really to blame? AI fluency is a human skill that takes practice, and treats a weak result as information, not an irreparable mistake.</p>
+    <p>As an interpretive ranger with the National Park Service, I learned to help people connect with places and their meaning. It&rsquo;s hard to look across a canyon or a battlefield and take in the full meaning of stewardship. The message is too big to hold, but stories give people a handhold. I bring the same craft to AI: one tangible moment, something as easy as building a sandwich, that makes an intangible skill graspable.</p>
+    <p class="signature">&mdash; Monica C. Thomas<br><span class="credential">M.S., Organizational Leadership, Quinnipiac University</span></p>
+    <p class="links">
+      <a href="carousel.html" target="_blank" rel="noopener">See the slide version</a>
+      <a href="https://kushuthomas.github.io/garden-planner/" target="_blank" rel="noopener">See the garden planner app</a>
+      <a href="https://www.linkedin.com/in/monica-thomas-yorkpa" target="_blank" rel="noopener">Find me on LinkedIn</a>
+    </p>
+    <button class="btn ghost" data-go="2" data-reset="true">Try the exercise again &#8635;</button>
+  </section>
+</main>
+
+<footer>
+  Spot the Gap &middot; a two-minute exercise in AI judgment &middot;
+  <button data-go="7">about</button>
+</footer>
+
+<script>
+(function () {
+  var current = 1;
+  var picked = new Set();
+
+  var screens = document.querySelectorAll('.screen');
+  var dots = document.querySelectorAll('.progress span');
+
+  function show(n, reset) {
+    if (reset) {
+      picked.clear();
+      document.querySelectorAll('.chip').forEach(function (c) {
+        c.setAttribute('aria-pressed', 'false');
+      });
+      updateTally();
+    }
+    current = n;
+    screens.forEach(function (s) { s.classList.remove('visible'); });
+    var target = document.getElementById('s' + n);
+    // restart the entrance animation
+    void target.offsetWidth;
+    target.classList.add('visible');
+
+    dots.forEach(function (d, i) {
+      d.classList.toggle('active', i + 1 === n);
+      d.classList.toggle('amber', i + 1 === n && (n === 3 || n === 5));
+    });
+
+    if (n === 3) writePersonalNote();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function updateTally() {
+    var t = document.getElementById('tally');
+    if (picked.size === 0) {
+      t.textContent = '';
+    } else if (picked.size === 1) {
+      t.textContent = '1 gap selected. Keep looking — or reveal when you feel finished.';
+    } else {
+      t.textContent = picked.size + ' gaps selected. Reveal when you feel finished.';
+    }
+  }
+
+  function writePersonalNote() {
+    var note = document.getElementById('personalNote');
+    if (picked.has('allergies')) {
+      note.textContent = 'You tapped it — good eye. But did it feel heavier than the others? It should have. That weighing is the human job.';
+    } else if (picked.size > 0) {
+      note.textContent = 'You walked right past it, too. Don\u2019t feel bad — that\u2019s exactly how silent gaps work.';
+    } else {
+      note.textContent = '';
+    }
+  }
+
+  document.addEventListener('click', function (e) {
+    var goBtn = e.target.closest('[data-go]');
+    if (goBtn) {
+      show(parseInt(goBtn.getAttribute('data-go'), 10), goBtn.hasAttribute('data-reset'));
+      return;
+    }
+    var chip = e.target.closest('.chip');
+    if (chip) {
+      var gap = chip.getAttribute('data-gap');
+      var on = chip.getAttribute('aria-pressed') === 'true';
+      chip.setAttribute('aria-pressed', on ? 'false' : 'true');
+      if (on) { picked.delete(gap); } else { picked.add(gap); }
+      updateTally();
+    }
+  });
+
+  show(1);
+})();
+</script>
+
+</body>
+</html>

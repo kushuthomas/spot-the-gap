@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Spot the Gap — Carousel</title>
+<meta name="description" content="A nine-slide walkthrough of why the friendliest-looking AI prompts can be the most dangerous. By Monica C. Thomas.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Karla:ital,wght@0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #FAF7F0;
+    --card: #FFFFFF;
+    --ink: #2E342C;
+    --ink-soft: #5C6357;
+    --green: #476B4D;
+    --green-deep: #35523B;
+    --green-mist: #E7EEE4;
+    --amber: #B97F24;
+    --amber-soft: #F6ECD9;
+    --amber-line: #E4C388;
+    --line: #E3DED2;
+    --shadow: 0 2px 16px rgba(46,52,44,0.09);
+    --radius: 16px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Karla', 'Segoe UI', sans-serif;
+    font-size: 1.06rem;
+    line-height: 1.65;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem 1rem 2rem;
+  }
+
+  /* ---- Carousel shell ---- */
+  .carousel-wrap {
+    width: 100%;
+    max-width: 680px;
+    position: relative;
+  }
+
+  /* ---- Counter ---- */
+  .counter {
+    text-align: center;
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin-bottom: 1.2rem;
+  }
+
+  /* ---- Slide card ---- */
+  .slide-track {
+    position: relative;
+    min-height: 480px;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+
+  .slide {
+    display: none;
+    padding: 3rem 3.2rem 2.8rem;
+    animation: slidein 0.45s ease both;
+    min-height: 480px;
+    flex-direction: column;
+    justify-content: center;
+  }
+  .slide.active {
+    display: flex;
+  }
+
+  @keyframes slidein {
+    from { opacity: 0; transform: translateX(28px); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
+  .slide.prev-anim {
+    animation-name: slidein-back;
+  }
+  @keyframes slidein-back {
+    from { opacity: 0; transform: translateX(-28px); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .slide { animation: none; }
+  }
+
+  /* ---- Typography ---- */
+  .eyebrow {
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--green);
+    margin-bottom: 1rem;
+  }
+  .eyebrow.amber { color: var(--amber); }
+
+  h1 {
+    font-family: 'Fraunces', Georgia, serif;
+    font-weight: 700;
+    font-size: clamp(2.8rem, 8vw, 4rem);
+    line-height: 1.05;
+    color: var(--ink);
+    margin-bottom: 0.6rem;
+  }
+
+  h2 {
+    font-family: 'Fraunces', Georgia, serif;
+    font-weight: 600;
+    font-size: clamp(1.6rem, 5vw, 2.2rem);
+    line-height: 1.15;
+    color: var(--ink);
+    margin-bottom: 0.9rem;
+  }
+  h2.amber { color: var(--amber); }
+
+  .tagline {
+    font-family: 'Fraunces', Georgia, serif;
+    font-style: italic;
+    font-size: 1.3rem;
+    color: var(--ink-soft);
+  }
+
+  p { margin-bottom: 0.9rem; }
+  p:last-child { margin-bottom: 0; }
+  .muted { color: var(--ink-soft); }
+
+  /* ---- Prompt card ---- */
+  .chat-card {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 12px 12px 12px 4px;
+    padding: 1.2rem 1.5rem;
+    margin: 1.2rem 0;
+    font-size: 1.05rem;
+  }
+  .chat-card .label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin-bottom: 0.5rem;
+  }
+  .chat-card.fixed {
+    border-left: 4px solid var(--green);
+  }
+
+  /* ---- Pill tags ---- */
+  .pill-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.55rem;
+    margin: 1.1rem 0 0.6rem;
+  }
+  .pill {
+    font-size: 0.9rem;
+    font-weight: 600;
+    background: var(--green-mist);
+    color: var(--green-deep);
+    border-radius: 999px;
+    padding: 0.35rem 1rem;
+  }
+  .pill.amber {
+    background: #fff;
+    color: var(--amber);
+    border: 1px solid var(--amber-line);
+  }
+
+  /* ---- Pullquote ---- */
+  .pullquote {
+    font-family: 'Fraunces', Georgia, serif;
+    font-size: clamp(1.4rem, 4vw, 1.9rem);
+    font-weight: 600;
+    line-height: 1.25;
+    padding-left: 1.2rem;
+    border-left: 4px solid var(--amber);
+    color: var(--ink);
+    margin-bottom: 1.1rem;
+  }
+  .pullquote span { color: var(--amber); }
+
+  /* ---- Numbered list ---- */
+  .moves {
+    list-style: none;
+    counter-reset: move;
+    margin: 1.2rem 0 0.4rem;
+  }
+  .moves li {
+    counter-increment: move;
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+    margin-bottom: 0.9rem;
+  }
+  .moves li .num {
+    min-width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    background: var(--green-mist);
+    color: var(--green-deep);
+    font-weight: 700;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 0.05rem;
+  }
+  .moves li .body strong { display: block; margin-bottom: 0.1rem; }
+  .moves li .body .verdict { font-size: 0.95rem; color: var(--ink-soft); }
+  .skipped {
+    display: inline-block;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--amber);
+    margin-left: 0.5rem;
+    vertical-align: middle;
+  }
+
+  /* ---- About slide ---- */
+  .signature {
+    font-family: 'Fraunces', Georgia, serif;
+    font-size: 1.05rem;
+    font-weight: 600;
+    margin-top: 1.2rem;
+  }
+  .signature .cred {
+    font-family: 'Karla', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+  }
+  .slide-links {
+    margin-top: 1rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.5rem;
+  }
+  .slide-links a {
+    color: var(--green);
+    font-weight: 700;
+    text-decoration: none;
+    border-bottom: 2px solid var(--green-mist);
+    transition: border-color 0.2s;
+    font-size: 0.95rem;
+  }
+  .slide-links a:hover { border-color: var(--green); }
+
+  /* ---- Navigation ---- */
+  .nav {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1.2rem;
+    margin-top: 1.4rem;
+  }
+  .nav-btn {
+    background: var(--card);
+    border: 1.5px solid var(--line);
+    border-radius: 50%;
+    width: 2.6rem;
+    height: 2.6rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 1.1rem;
+    color: var(--ink);
+    transition: background 0.2s, border-color 0.2s;
+    box-shadow: 0 1px 6px rgba(46,52,44,0.07);
+  }
+  .nav-btn:hover { background: var(--green-mist); border-color: var(--green); }
+  .nav-btn:disabled { opacity: 0.3; cursor: default; }
+  .nav-btn:focus-visible { outline: 3px solid var(--amber-line); outline-offset: 3px; }
+
+  /* ---- Dots ---- */
+  .dots {
+    display: flex;
+    gap: 0.45rem;
+    align-items: center;
+  }
+  .dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--line);
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    transition: background 0.3s, transform 0.3s;
+  }
+  .dot.active {
+    background: var(--green);
+    transform: scale(1.35);
+  }
+  .dot:focus-visible { outline: 2px solid var(--amber-line); outline-offset: 2px; }
+
+  /* ---- Footer ---- */
+  footer {
+    margin-top: 1.6rem;
+    text-align: center;
+    font-size: 0.83rem;
+    color: var(--ink-soft);
+  }
+  footer a {
+    color: var(--green);
+    font-weight: 700;
+    text-decoration: none;
+  }
+  footer a:hover { text-decoration: underline; }
+
+  /* ---- Responsive ---- */
+  @media (max-width: 520px) {
+    .slide { padding: 2rem 1.5rem 2rem; }
+    .slide-track { min-height: 420px; }
+    .slide { min-height: 420px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="carousel-wrap" role="region" aria-label="Spot the Gap slide carousel">
+
+  <p class="counter" id="counter" aria-live="polite">1 / 9</p>
+
+  <div class="slide-track" id="track">
+
+    <!-- Slide 1 — Title -->
+    <div class="slide active" id="slide-1" role="group" aria-roledescription="slide" aria-label="Slide 1 of 9: Title">
+      <p class="eyebrow">A two-minute exercise in AI judgment</p>
+      <h1>Spot the Gap</h1>
+      <p class="tagline">The prompt looks fine. That&rsquo;s the problem.</p>
+    </div>
+
+    <!-- Slide 2 — The Request -->
+    <div class="slide" id="slide-2" role="group" aria-roledescription="slide" aria-label="Slide 2 of 9: The Request">
+      <p class="eyebrow">The request</p>
+      <div class="chat-card">
+        <p class="label">Sent to an AI assistant</p>
+        <p>&ldquo;I&rsquo;m holding a workshop at a school and need to provide lunch. Please give me a grocery list with item quantities and I&rsquo;ll order from the grocery store myself.&rdquo;</p>
+      </div>
+      <p class="muted">Reads reasonably, right? But to actually fill this order, an AI would have to guess almost everything.</p>
+    </div>
+
+    <!-- Slide 3 — The Loud Ones -->
+    <div class="slide" id="slide-3" role="group" aria-roledescription="slide" aria-label="Slide 3 of 9: The Loud Gaps">
+      <h2>You probably caught<br>the loud ones.</h2>
+      <div class="pill-row">
+        <span class="pill">How many people</span>
+        <span class="pill">What kind of lunch</span>
+        <span class="pill">Budget</span>
+        <span class="pill">Ages of the group</span>
+        <span class="pill">Kitchen equipment</span>
+        <span class="pill">Timing</span>
+        <span class="pill">Plates &amp; utensils</span>
+      </div>
+      <p class="muted">Miss these and you get a bad lunch &mdash; wrong amounts, wrong food. Annoying, not dangerous.</p>
+    </div>
+
+    <!-- Slide 4 — The Silent Gap -->
+    <div class="slide" id="slide-4" role="group" aria-roledescription="slide" aria-label="Slide 4 of 9: The Silent Gap" style="background: var(--amber-soft);">
+      <p class="eyebrow amber">The silent gap</p>
+      <h2 class="amber">Allergies &amp;<br>dietary needs</h2>
+      <div class="pill-row"><span class="pill amber">Allergies &amp; dietary needs</span></div>
+      <p>Nothing in the prompt hints at it, so the AI won&rsquo;t feel it missing. It will cheerfully suggest peanut butter sandwiches and trail mix &mdash; a perfectly good answer, and at a school, a potential emergency.</p>
+    </div>
+
+    <!-- Slide 5 — The Stakes -->
+    <div class="slide" id="slide-5" role="group" aria-roledescription="slide" aria-label="Slide 5 of 9: The Stakes">
+      <div class="pullquote">The loud gaps cost you a lunch.<br><span>The silent gap can cost someone their safety.</span></div>
+      <p>And only a human knows the difference.</p>
+      <p class="muted">The AI didn&rsquo;t guess wrong &mdash; it was never given enough to guess right.</p>
+    </div>
+
+    <!-- Slide 6 — The Autopsy -->
+    <div class="slide" id="slide-6" role="group" aria-roledescription="slide" aria-label="Slide 6 of 9: The Autopsy">
+      <h2>It wasn&rsquo;t the AI&rsquo;s fault.<br>The prompt set it up to fail.</h2>
+      <p class="muted" style="margin-bottom:0.4rem">Strong prompts use six basic moves. This one skipped nearly all of them:</p>
+      <ol class="moves">
+        <li><span class="num">1</span><span class="body"><strong>Give context <span class="skipped">skipped</span></strong><span class="verdict">No headcount, no ages, no dietary info, no setting.</span></span></li>
+        <li><span class="num">2</span><span class="body"><strong>Specify constraints <span class="skipped">skipped</span></strong><span class="verdict">&ldquo;Item quantities&rdquo; can&rsquo;t be met without the headcount.</span></span></li>
+        <li><span class="num">3</span><span class="body"><strong>Show examples <span class="skipped">skipped</span></strong><span class="verdict">No sense of what kind of lunch.</span></span></li>
+        <li><span class="num">4</span><span class="body"><strong>Define role &amp; tone <span class="skipped">skipped</span></strong><span class="verdict">Caterer? Nutritionist? Budget shopper?</span></span></li>
+        <li><span class="num">5</span><span class="body"><strong>Break into steps <span class="skipped">skipped</span></strong><span class="verdict">Can&rsquo;t rescue a task whose core facts are missing.</span></span></li>
+        <li><span class="num">6</span><span class="body"><strong>Ask it to think first</strong><span class="verdict">Same problem &mdash; thinking harder about missing facts doesn&rsquo;t create them.</span></span></li>
+      </ol>
+    </div>
+
+    <!-- Slide 7 — The Lesson -->
+    <div class="slide" id="slide-7" role="group" aria-roledescription="slide" aria-label="Slide 7 of 9: The Real Lesson">
+      <p class="eyebrow amber">The real lesson</p>
+      <h2>Not all missing<br>context is equal.</h2>
+      <p>Most missing information is <strong>loud</strong> &mdash; the gap is obvious, and a careful person (or a good AI) will catch it. But the most dangerous gaps are <strong>silent</strong>: so obvious to the human that we forget to say them, and so invisible to the AI that it never asks.</p>
+      <p>Filling every blank isn&rsquo;t the human&rsquo;s job. Knowing which blank can hurt someone &mdash; <em>that&rsquo;s</em> the job. That&rsquo;s the part you can&rsquo;t hand off.</p>
+    </div>
+
+    <!-- Slide 8 — The Fix -->
+    <div class="slide" id="slide-8" role="group" aria-roledescription="slide" aria-label="Slide 8 of 9: The Fix">
+      <h2>Same request.<br>Rewritten.</h2>
+      <div class="chat-card fixed">
+        <p class="label">Sent to an AI assistant &mdash; take two</p>
+        <p>&ldquo;I&rsquo;m hosting lunch for 30 middle-school teachers at an all-day workshop. There&rsquo;s a fridge and microwave but no full kitchen. Please give me a grocery list with quantities for build-your-own sandwiches, including a vegetarian option, and keep everything nut-free. Budget is around $200.&rdquo;</p>
+      </div>
+      <p class="muted">Now it&rsquo;s answerable &mdash; and safe. Same person, same lunch. The only thing that changed was the human doing the thinking up front.</p>
+    </div>
+
+    <!-- Slide 9 — About -->
+    <div class="slide" id="slide-9" role="group" aria-roledescription="slide" aria-label="Slide 9 of 9: About">
+      <p class="eyebrow">About</p>
+      <h2>Built by a former<br>park ranger.</h2>
+      <p>Anyone using AI has probably gotten a result that seemed generic, flat, or completely wrong. But was the AI really to blame? AI fluency is a human skill that takes practice, and treats a weak result as information, not an irreparable mistake.</p>
+      <p>As an interpretive ranger with the National Park Service, I learned to help people connect with places and their meaning. I bring the same craft to AI: one tangible moment that makes an intangible skill graspable.</p>
+      <p class="signature">&mdash; Monica C. Thomas<br><span class="cred">M.S., Organizational Leadership, Quinnipiac University</span></p>
+      <div class="slide-links">
+        <a href="https://kushuthomas.github.io/spot-the-gap/" target="_blank" rel="noopener">Try it interactive</a>
+        <a href="https://kushuthomas.github.io/garden-planner/" target="_blank" rel="noopener">See the garden planner</a>
+        <a href="https://www.linkedin.com/in/monica-thomas-yorkpa" target="_blank" rel="noopener">LinkedIn</a>
+      </div>
+    </div>
+
+  </div><!-- /slide-track -->
+
+  <div class="nav" role="group" aria-label="Carousel navigation">
+    <button class="nav-btn" id="prevBtn" aria-label="Previous slide" disabled>&larr;</button>
+    <div class="dots" role="tablist" aria-label="Slide indicators" id="dotRow"></div>
+    <button class="nav-btn" id="nextBtn" aria-label="Next slide">&rarr;</button>
+  </div>
+
+</div><!-- /carousel-wrap -->
+
+<footer>
+  Spot the Gap &middot; <a href="https://kushuthomas.github.io/spot-the-gap/" target="_blank" rel="noopener">Try the interactive exercise &rarr;</a>
+</footer>
+
+<script>
+(function () {
+  var total = 9;
+  var current = 1;
+  var animDir = 'forward';
+
+  var slides = document.querySelectorAll('.slide');
+  var counter = document.getElementById('counter');
+  var prevBtn = document.getElementById('prevBtn');
+  var nextBtn = document.getElementById('nextBtn');
+  var dotRow  = document.getElementById('dotRow');
+
+  // Build dots
+  for (var i = 1; i <= total; i++) {
+    var d = document.createElement('button');
+    d.className = 'dot' + (i === 1 ? ' active' : '');
+    d.setAttribute('role', 'tab');
+    d.setAttribute('aria-label', 'Go to slide ' + i);
+    d.setAttribute('aria-selected', i === 1 ? 'true' : 'false');
+    d.dataset.idx = i;
+    dotRow.appendChild(d);
+  }
+
+  function goTo(n, dir) {
+    if (n < 1 || n > total) return;
+    slides[current - 1].classList.remove('active', 'prev-anim');
+    current = n;
+    var slide = slides[current - 1];
+    slide.classList.remove('prev-anim');
+    void slide.offsetWidth; // reflow to restart animation
+    if (dir === 'back') slide.classList.add('prev-anim');
+    slide.classList.add('active');
+
+    counter.textContent = current + ' / ' + total;
+    prevBtn.disabled = current === 1;
+    nextBtn.disabled = current === total;
+
+    dotRow.querySelectorAll('.dot').forEach(function (d, i) {
+      var active = i + 1 === current;
+      d.classList.toggle('active', active);
+      d.setAttribute('aria-selected', active ? 'true' : 'false');
+    });
+  }
+
+  prevBtn.addEventListener('click', function () { goTo(current - 1, 'back'); });
+  nextBtn.addEventListener('click', function () { goTo(current + 1, 'forward'); });
+
+  dotRow.addEventListener('click', function (e) {
+    var btn = e.target.closest('.dot');
+    if (btn) goTo(parseInt(btn.dataset.idx), parseInt(btn.dataset.idx) > current ? 'forward' : 'back');
+  });
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'ArrowRight') goTo(current + 1, 'forward');
+    if (e.key === 'ArrowLeft')  goTo(current - 1, 'back');
+  });
+
+  // Touch / swipe
+  var touchStartX = 0;
+  var track = document.getElementById('track');
+  track.addEventListener('touchstart', function (e) { touchStartX = e.touches[0].clientX; }, { passive: true });
+  track.addEventListener('touchend', function (e) {
+    var dx = e.changedTouches[0].clientX - touchStartX;
+    if (Math.abs(dx) > 40) { dx < 0 ? goTo(current + 1, 'forward') : goTo(current - 1, 'back'); }
+  });
+})();
+</script>
+
+</body>
+</html>
